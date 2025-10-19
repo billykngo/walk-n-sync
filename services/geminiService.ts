@@ -1,7 +1,7 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { decode, decodeAudioData } from '../utils/audioUtils';
 
-const getAiClient = (apiKey: string) => {
+export const getAiClient = (apiKey: string) => {
     if (!apiKey) {
         throw new Error("A Google Gemini API key is required.");
     }

@@ -1,5 +1,5 @@
 {
   "name": "Walk-n-Sync",
-  "description": "An application that extracts text from an uploaded PDF and converts it to speech using Gemini, streaming the audio playback for a seamless experience.",
+  "description": "An application that extracts text from an uploaded PDF, converts it to speech, and then engages you with an interactive AI coach to help you learn and retain the information.",
   "requestFramePermissions": []
 }

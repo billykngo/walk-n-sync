@@ -32,6 +32,7 @@ interface VoicePanelProps {
     onToggleFavorite: (voiceId: string) => void;
     geminiApiKey: string;
     elevenLabsApiKey: string;
+    elevenLabsKeyStatus: 'unverified' | 'verifying' | 'valid' | 'invalid';
 }
 
 const VoicePanel: React.FC<VoicePanelProps> = ({
@@ -47,7 +48,8 @@ const VoicePanel: React.FC<VoicePanelProps> = ({
     favoriteVoices,
     onToggleFavorite,
     geminiApiKey,
-    elevenLabsApiKey
+    elevenLabsApiKey,
+    elevenLabsKeyStatus
 }) => {
     const [elevenLabsVoices, setElevenLabsVoices] = useState<Voice[]>([]);
     const [isLoadingVoices, setIsLoadingVoices] = useState(false);
@@ -139,37 +141,41 @@ const VoicePanel: React.FC<VoicePanelProps> = ({
             setVoiceError(null);
             return;
         }
+        
+        setElevenLabsVoices([]); // Clear previous voices on any change
 
-        if (!elevenLabsApiKey) {
-            setElevenLabsVoices([]);
-            setVoiceError("Please enter an ElevenLabs API key to see available voices.");
-            return;
-        }
-
-        const fetchVoices = async () => {
-            setIsLoadingVoices(true);
+        if (elevenLabsKeyStatus === 'invalid') {
+            setVoiceError("The provided ElevenLabs API Key is invalid. Please correct it in the settings panel.");
+            setIsLoadingVoices(false);
+        } else if (elevenLabsKeyStatus === 'verifying') {
             setVoiceError(null);
-            setElevenLabsVoices([]);
-            try {
-                const voices = await getElevenLabsVoices(elevenLabsApiKey);
-                setElevenLabsVoices(voices);
-                if (voices.length > 0) {
-                    // Set the first voice as the default for the new list.
-                    setSelectedVoice(voices[0].id);
-                } else {
+            setIsLoadingVoices(true);
+        } else if (!elevenLabsApiKey) { // Covers 'unverified'
+            setVoiceError("Please enter an ElevenLabs API key to see available voices.");
+            setIsLoadingVoices(false);
+        } else if (elevenLabsKeyStatus === 'valid') {
+            const fetchVoices = async () => {
+                setIsLoadingVoices(true);
+                setVoiceError(null);
+                try {
+                    const voices = await getElevenLabsVoices(elevenLabsApiKey);
+                    setElevenLabsVoices(voices);
+                    if (voices.length > 0 && !voices.some(v => v.id === selectedVoice)) {
+                        setSelectedVoice(voices[0].id);
+                    } else if (voices.length === 0) {
+                        setSelectedVoice('');
+                        setVoiceError("No ElevenLabs voices were found for this API key.");
+                    }
+                } catch (err) {
+                    setVoiceError(err instanceof Error ? err.message : 'An unknown error occurred.');
                     setSelectedVoice('');
-                    setVoiceError("No ElevenLabs voices were found for this API key.");
+                } finally {
+                    setIsLoadingVoices(false);
                 }
-            } catch (err) {
-                setVoiceError(err instanceof Error ? err.message : 'An unknown error occurred.');
-                setSelectedVoice(''); // Clear voice on error
-            } finally {
-                setIsLoadingVoices(false);
-            }
-        };
-
-        fetchVoices();
-    }, [ttsProvider, elevenLabsApiKey, setSelectedVoice, stopCurrentSample]);
+            };
+            fetchVoices();
+        }
+    }, [ttsProvider, elevenLabsApiKey, setSelectedVoice, stopCurrentSample, elevenLabsKeyStatus, selectedVoice]);
 
     const handleProviderChange = (provider: TtsProvider) => {
         stopCurrentSample();

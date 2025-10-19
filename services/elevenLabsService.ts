@@ -2,6 +2,25 @@ import { Voice } from '../types';
 
 const ELEVENLABS_API_URL = 'https://api.elevenlabs.io/v1';
 
+export const verifyElevenLabsApiKey = async (apiKey: string): Promise<boolean> => {
+    if (!apiKey) return false;
+    
+    try {
+        const response = await fetch(`${ELEVENLABS_API_URL}/user`, {
+            headers: { 'xi-api-key': apiKey },
+        });
+
+        if (response.ok) return true;
+        if (response.status === 401) return false;
+        
+        // For other errors (network, server issues), treat as invalid for the user.
+        return false;
+    } catch (error) {
+        console.error("Error verifying ElevenLabs API key:", error);
+        return false;
+    }
+};
+
 export const getElevenLabsVoices = async (apiKey: string): Promise<Voice[]> => {
     if (!apiKey) {
         throw new Error('An ElevenLabs API key is required to fetch voices.');
@@ -37,7 +56,8 @@ export const generateElevenLabsSpeech = async (
     }
 
     try {
-        const response = await fetch(`${ELEVENLABS_API_URL}/text-to-speech/${voiceId}`, {
+        const url = `${ELEVENLABS_API_URL}/text-to-speech/${voiceId}?output_format=mp3_44100_128`;
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

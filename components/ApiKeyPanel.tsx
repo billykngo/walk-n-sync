@@ -13,6 +13,7 @@ interface ApiKeyPanelProps {
     mathpixAppKey: string;
     setMathpixAppKey: (key: string) => void;
     isDisabled: boolean;
+    elevenLabsKeyStatus: 'unverified' | 'verifying' | 'valid' | 'invalid';
 }
 
 const ApiKeyPanel: React.FC<ApiKeyPanelProps> = ({
@@ -27,6 +28,7 @@ const ApiKeyPanel: React.FC<ApiKeyPanelProps> = ({
     mathpixAppKey,
     setMathpixAppKey,
     isDisabled,
+    elevenLabsKeyStatus,
 }) => {
     return (
         <>
@@ -58,6 +60,7 @@ const ApiKeyPanel: React.FC<ApiKeyPanelProps> = ({
                             onChange={setElevenLabsApiKey}
                             disabled={isDisabled}
                             placeholder="Enter your ElevenLabs API key"
+                            verificationStatus={elevenLabsKeyStatus}
                         />
                         <ApiKeyInput
                             id="mathpix-app-id"
